@@ -34,6 +34,8 @@ public:
   int getDepthHeight();
   int getColorWidth();
   int getColorHeight();
+  std::string getColorFrame();
+  std::string getDepthFrame();
   void getDepthCameraInfo(sensor_msgs::CameraInfo& camera_info);
   void getRgbCameraInfo(sensor_msgs::CameraInfo& camera_info);
   void print();

@@ -90,6 +90,16 @@ int K4ACalibrationTransformData::getColorHeight()
   return k4a_calibration_.color_camera_calibration.resolution_height;
 }
 
+std::string K4ACalibrationTransformData::getColorFrame()
+{
+  return tf_prefix_ + rgb_camera_frame_;
+}
+
+std::string K4ACalibrationTransformData::getDepthFrame()
+{
+  return tf_prefix_ + depth_camera_frame_;
+}
+
 void K4ACalibrationTransformData::print()
 {
   ROS_INFO("K4A Calibration Blob:");

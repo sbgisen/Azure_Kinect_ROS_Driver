@@ -893,6 +893,7 @@ void K4AROSDevice::framePublisherThread()
   if (ci_mngr_rgb_->isCalibrated())
   {
     rgb_raw_camera_info = depth_rect_camera_info = ci_mngr_rgb_->getCameraInfo();
+    rgb_raw_camera_info.header.frame_id = depth_rect_camera_info.header.frame_id = calibration_data_.getColorFrame();
   }
   else
   {
@@ -903,6 +904,8 @@ void K4AROSDevice::framePublisherThread()
   if (ci_mngr_ir_->isCalibrated())
   {
     depth_raw_camera_info = rgb_rect_camera_info = ir_raw_camera_info = ci_mngr_ir_->getCameraInfo();
+    depth_raw_camera_info.header.frame_id = rgb_rect_camera_info.header.frame_id = ir_raw_camera_info.header.frame_id =
+        calibration_data_.getDepthFrame();
   }
   else
   {
