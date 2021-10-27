@@ -235,22 +235,28 @@ K4AROSDevice::K4AROSDevice(const NodeHandle& n, const NodeHandle& p)
   }
 
   // Register our topics
+  std::string rgb_ns;
+  private_node_.param<std::string>("rgb", rgb_ns, "rgb");
   if (params_.color_format == "jpeg")
   {
     // JPEG images are directly published on 'rgb/image_raw/compressed' so that
     // others can subscribe to 'rgb/image_raw' with compressed_image_transport.
     // This technique is described in:
     // http://wiki.ros.org/compressed_image_transport#Publishing_compressed_images_directly
-    rgb_jpeg_publisher_ = node_.advertise<CompressedImage>(node_.resolveName("rgb/image_raw") + "/compressed", 1);
+    rgb_jpeg_publisher_ = node_.advertise<CompressedImage>(node_.resolveName(rgb_ns + "/image_raw") + "/compressed", 1);
   }
   else if (params_.color_format == "bgra")
   {
-    rgb_raw_publisher_ = image_transport_.advertise("rgb/image_raw", 1);
+    rgb_raw_publisher_ = image_transport_.advertise(rgb_ns + "/image_raw", 1);
   }
-  rgb_raw_camerainfo_publisher_ = node_.advertise<CameraInfo>("rgb/camera_info", 1);
+  rgb_raw_camerainfo_publisher_ = node_.advertise<CameraInfo>(rgb_ns + "/camera_info", 1);
 
-  static const std::string depth_raw_topic = "depth/image_raw";
-  static const std::string depth_rect_topic = "depth_to_rgb/image_raw";
+  std::string depth_ns;
+  private_node_.param<std::string>("depth", depth_ns, "depth");
+  static const std::string depth_raw_topic = depth_ns + "/image_raw";
+  std::string depth_registered_ns;
+  private_node_.param<std::string>("depth_registered", depth_registered_ns, "depth_to_rgb");
+  static const std::string depth_rect_topic = depth_registered_ns + "/image_raw";
   if (params_.depth_unit == sensor_msgs::image_encodings::TYPE_16UC1) {
     // set lowest PNG compression for maximum FPS
     node_.setParam(node_.resolveName(depth_raw_topic) + "/compressed/format", "png");
@@ -260,16 +266,20 @@ K4AROSDevice::K4AROSDevice(const NodeHandle& n, const NodeHandle& p)
   }
 
   depth_raw_publisher_ = image_transport_.advertise(depth_raw_topic, 1);
-  depth_raw_camerainfo_publisher_ = node_.advertise<CameraInfo>("depth/camera_info", 1);
+  depth_raw_camerainfo_publisher_ = node_.advertise<CameraInfo>(depth_ns + "/camera_info", 1);
 
   depth_rect_publisher_ = image_transport_.advertise(depth_rect_topic, 1);
-  depth_rect_camerainfo_publisher_ = node_.advertise<CameraInfo>("depth_to_rgb/camera_info", 1);
+  depth_rect_camerainfo_publisher_ = node_.advertise<CameraInfo>(depth_registered_ns + "/camera_info", 1);
 
-  rgb_rect_publisher_ = image_transport_.advertise("rgb_to_depth/image_raw", 1);
-  rgb_rect_camerainfo_publisher_ = node_.advertise<CameraInfo>("rgb_to_depth/camera_info", 1);
+  std::string rgb_registered_ns;
+  private_node_.param<std::string>("rgb_registered", rgb_registered_ns, "rgb_to_depth");
+  rgb_rect_publisher_ = image_transport_.advertise(rgb_registered_ns + "/image_raw", 1);
+  rgb_rect_camerainfo_publisher_ = node_.advertise<CameraInfo>(rgb_registered_ns + "/camera_info", 1);
 
-  ir_raw_publisher_ = image_transport_.advertise("ir/image_raw", 1);
-  ir_raw_camerainfo_publisher_ = node_.advertise<CameraInfo>("ir/camera_info", 1);
+  std::string ir_ns;
+  private_node_.param<std::string>("ir", ir_ns, "ir");
+  ir_raw_publisher_ = image_transport_.advertise(ir_ns + "/image_raw", 1);
+  ir_raw_camerainfo_publisher_ = node_.advertise<CameraInfo>(ir_ns + "/camera_info", 1);
 
   imu_orientation_publisher_ = node_.advertise<Imu>("imu", 200);
 
