@@ -279,6 +279,7 @@ K4AROSDevice::K4AROSDevice(const NodeHandle& n, const NodeHandle& p)
   std::string ir_ns;
   private_node_.param<std::string>("ir", ir_ns, "ir");
   ir_raw_publisher_ = image_transport_.advertise(ir_ns + "/image_raw", 1);
+  ir_bgr_publisher_ = image_transport_.advertise(ir_ns + "/image_bgr", 1);
   ir_raw_camerainfo_publisher_ = node_.advertise<CameraInfo>(ir_ns + "/camera_info", 1);
 
   imu_orientation_publisher_ = node_.advertise<Imu>("imu", 200);
@@ -994,7 +995,8 @@ void K4AROSDevice::framePublisherThread()
       // Only do compute if we have subscribers
       // Only create ir frame when we are using a device or we have an ir image.
       // Recordings may not have synchronized captures. For unsynchronized captures without ir image skip ir frame.
-      if ((ir_raw_publisher_.getNumSubscribers() > 0 || ir_raw_camerainfo_publisher_.getNumSubscribers() > 0) &&
+      if ((ir_raw_publisher_.getNumSubscribers() > 0 || ir_bgr_publisher_.getNumSubscribers() > 0 ||
+           ir_raw_camerainfo_publisher_.getNumSubscribers() > 0) &&
           (k4a_device_ || capture.get_ir_image() != nullptr))
       {
         // IR images are available in all depth modes
@@ -1015,8 +1017,13 @@ void K4AROSDevice::framePublisherThread()
           ir_raw_frame->header.stamp = capture_time;
           ir_raw_frame->header.frame_id = calibration_data_.tf_prefix_ + calibration_data_.depth_camera_frame_;
 
-          ir_raw_publisher_.publish(ir_raw_frame);
           ir_raw_camerainfo_publisher_.publish(ir_raw_camera_info);
+          if (ir_raw_publisher_.getNumSubscribers() > 0)
+            ir_raw_publisher_.publish(ir_raw_frame);
+          if (ir_bgr_publisher_.getNumSubscribers() > 0){
+            auto ir_bgr8 = cv_bridge::toCvCopy(ir_raw_frame, sensor_msgs::image_encodings::BGR8)->toImageMsg();
+            ir_bgr_publisher_.publish(ir_bgr8);
+          }
         }
       }
 
