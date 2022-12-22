@@ -239,9 +239,9 @@ void K4ACalibrationTransformData::publishDepthToBaseTf()
 // [0,0,0] origin of the depth camera frame, known as "depth_camera_link" or "depth_camera_frame"
 //
 // Publish a TF link so the URDF model and the depth camera line up correctly
-#define DEPTH_CAMERA_OFFSET_MM_X 127.0f
+#define DEPTH_CAMERA_OFFSET_MM_X 0.0f
 #define DEPTH_CAMERA_OFFSET_MM_Y 0.0f
-#define DEPTH_CAMERA_OFFSET_MM_Z -5.2f  // The depth camera is shifted 1.8mm up in the depth window
+#define DEPTH_CAMERA_OFFSET_MM_Z 1.8f  // The depth camera is shifted 1.8mm up in the depth window
 
 tf2::Vector3 K4ACalibrationTransformData::getDepthToBaseTranslationCorrection()
 {
