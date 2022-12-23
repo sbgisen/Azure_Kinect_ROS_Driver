@@ -43,6 +43,8 @@
              std::string, std::string("NFOV_UNBINNED"))                                                                \
   LIST_ENTRY(color_enabled, "True if color camera should be enabled", bool, false)                                     \
   LIST_ENTRY(color_format, "The format of RGB camera. Options are: bgra, jpeg", std::string, std::string("bgra"))      \
+  LIST_ENTRY(register_enabled, "True if registration", bool, false)                                                    \
+  LIST_ENTRY(ir_enabled, "True if ir should be published", bool, false)                                                    \
   LIST_ENTRY(color_resolution,                                                                                         \
              "The resolution of the color camera. Options are: 720P, 1080P, 1440P, 1536P, 2160P, 3072P", std::string,  \
              std::string("720P"))                                                                                      \

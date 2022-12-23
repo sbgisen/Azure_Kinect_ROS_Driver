@@ -268,23 +268,27 @@ K4AROSDevice::K4AROSDevice(const NodeHandle& n, const NodeHandle& p)
   depth_raw_publisher_ = image_transport_.advertise(depth_raw_topic, 1);
   depth_raw_camerainfo_publisher_ = node_.advertise<CameraInfo>(depth_ns + "/camera_info", 1);
 
-  depth_rect_publisher_ = image_transport_.advertise(depth_rect_topic, 1);
-  depth_rect_camerainfo_publisher_ = node_.advertise<CameraInfo>(depth_registered_ns + "/camera_info", 1);
+  if (params_.register_enabled){
+    depth_rect_publisher_ = image_transport_.advertise(depth_rect_topic, 1);
+    depth_rect_camerainfo_publisher_ = node_.advertise<CameraInfo>(depth_registered_ns + "/camera_info", 1);
 
-  std::string rgb_registered_ns;
-  private_node_.param<std::string>("rgb_registered", rgb_registered_ns, "rgb_to_depth");
-  rgb_rect_publisher_ = image_transport_.advertise(rgb_registered_ns + "/image_raw", 1);
-  rgb_rect_camerainfo_publisher_ = node_.advertise<CameraInfo>(rgb_registered_ns + "/camera_info", 1);
+    std::string rgb_registered_ns;
+    private_node_.param<std::string>("rgb_registered", rgb_registered_ns, "rgb_to_depth");
+    rgb_rect_publisher_ = image_transport_.advertise(rgb_registered_ns + "/image_raw", 1);
+    rgb_rect_camerainfo_publisher_ = node_.advertise<CameraInfo>(rgb_registered_ns + "/camera_info", 1);
+  }
 
-  std::string ir_ns;
-  private_node_.param<std::string>("ir", ir_ns, "ir");
-  ir_raw_publisher_ = image_transport_.advertise(ir_ns + "/image_raw", 1);
-  ir_bgr_publisher_ = image_transport_.advertise(ir_ns + "/image_bgr", 1);
-  ir_raw_camerainfo_publisher_ = node_.advertise<CameraInfo>(ir_ns + "/camera_info", 1);
+  if (params_.ir_enabled){
+    std::string ir_ns;
+    private_node_.param<std::string>("ir", ir_ns, "ir");
+    ir_raw_publisher_ = image_transport_.advertise(ir_ns + "/image_raw", 1);
+    ir_bgr_publisher_ = image_transport_.advertise(ir_ns + "/image_bgr", 1);
+    ir_raw_camerainfo_publisher_ = node_.advertise<CameraInfo>(ir_ns + "/camera_info", 1);
+  }
 
   imu_orientation_publisher_ = node_.advertise<Imu>("imu", 200);
 
-  if (params_.point_cloud || params_.rgb_point_cloud) {
+  if (params_.register_enabled && (params_.point_cloud || params_.rgb_point_cloud)) {
     pointcloud_publisher_ = node_.advertise<PointCloud2>("points2", 1);
   }
 
@@ -995,7 +999,7 @@ void K4AROSDevice::framePublisherThread()
       // Only do compute if we have subscribers
       // Only create ir frame when we are using a device or we have an ir image.
       // Recordings may not have synchronized captures. For unsynchronized captures without ir image skip ir frame.
-      if ((ir_raw_publisher_.getNumSubscribers() > 0 || ir_bgr_publisher_.getNumSubscribers() > 0 ||
+      if (params_.ir_enabled && (ir_raw_publisher_.getNumSubscribers() > 0 || ir_bgr_publisher_.getNumSubscribers() > 0 ||
            ir_raw_camerainfo_publisher_.getNumSubscribers() > 0) &&
           (k4a_device_ || capture.get_ir_image() != nullptr))
       {
@@ -1062,7 +1066,7 @@ void K4AROSDevice::framePublisherThread()
         // Only create rect depth frame when we are using a device or we have an depth image.
         // Recordings may not have synchronized captures. For unsynchronized captures without depth image skip rect
         // depth frame.
-        if (params_.color_enabled &&
+        if (params_.color_enabled && params_.register_enabled &&
             (depth_rect_publisher_.getNumSubscribers() > 0 ||
              depth_rect_camerainfo_publisher_.getNumSubscribers() > 0) &&
             (k4a_device_ || capture.get_depth_image() != nullptr))
@@ -1166,7 +1170,7 @@ void K4AROSDevice::framePublisherThread()
         // We can only rectify the color into the depth co-ordinates if the depth camera is enabled and processing depth
         // data Only create rgb rect frame when we are using a device or we have a synchronized image. Recordings may
         // not have synchronized captures. For unsynchronized captures image skip rgb rect frame.
-        if (params_.depth_enabled && (calibration_data_.k4a_calibration_.depth_mode != K4A_DEPTH_MODE_PASSIVE_IR) &&
+        if (params_.depth_enabled && params_.register_enabled && (calibration_data_.k4a_calibration_.depth_mode != K4A_DEPTH_MODE_PASSIVE_IR) &&
             (rgb_rect_publisher_.getNumSubscribers() > 0 || rgb_rect_camerainfo_publisher_.getNumSubscribers() > 0) &&
             (k4a_device_ || (capture.get_color_image() != nullptr && capture.get_depth_image() != nullptr)))
         {
