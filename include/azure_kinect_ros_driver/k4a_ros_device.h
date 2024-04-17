@@ -37,7 +37,7 @@
 
 class K4AROSDevice
 {
- public:
+public:
   K4AROSDevice(const ros::NodeHandle& n = ros::NodeHandle(), const ros::NodeHandle& p = ros::NodeHandle("~"));
 
   ~K4AROSDevice();
@@ -72,7 +72,7 @@ class K4AROSDevice
                                        const k4abt::frame& body_frame);
 #endif
 
- private:
+private:
   k4a_result_t renderBGRA32ToROS(sensor_msgs::ImagePtr& rgb_frame, k4a::image& k4a_bgra_frame);
   k4a_result_t renderDepthToROS(sensor_msgs::ImagePtr& depth_image, k4a::image& k4a_depth_frame);
   k4a_result_t renderIrToROS(sensor_msgs::ImagePtr& ir_image, k4a::image& k4a_ir_frame);
@@ -165,7 +165,7 @@ class K4AROSDevice
   std::thread body_publisher_thread_;
 #endif
 
-  std::chrono::nanoseconds device_to_realtime_offset_{0};
+  std::chrono::nanoseconds device_to_realtime_offset_{ 0 };
 
   // Thread control
   volatile bool running_;
