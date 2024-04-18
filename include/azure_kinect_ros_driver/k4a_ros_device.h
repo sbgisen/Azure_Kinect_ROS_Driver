@@ -61,6 +61,7 @@ public:
   k4a_result_t getJpegRgbFrame(const k4a::capture& capture, sensor_msgs::CompressedImagePtr& jpeg_image);
 
   k4a_result_t getIrFrame(const k4a::capture& capture, sensor_msgs::ImagePtr& ir_image);
+  bool isRunning();
 
 #if defined(K4A_BODY_TRACKING)
   k4a_result_t getBodyMarker(const k4abt_body_t& body, visualization_msgs::MarkerPtr marker_msg, int jointType,
@@ -168,7 +169,7 @@ private:
   std::chrono::nanoseconds device_to_realtime_offset_{ 0 };
 
   // Thread control
-  volatile bool running_;
+  volatile bool initialized_, running_;
 
   // Last capture timestamp for synchronizing playback capture and imu thread
   std::atomic_int64_t last_capture_time_usec_;

@@ -40,18 +40,14 @@ int main(int argc, char** argv)
 
   if (result == K4A_RESULT_SUCCEEDED)
   {
-    ros::spin();
-
+    while (ros::ok() && !ros::isShuttingDown() && device->isRunning())
+    {
+      ros::spinOnce();
+    }
     ROS_INFO("ROS Exit Started");
   }
-
   device.reset();
-
-  ROS_INFO("ROS Exit");
-
   ros::shutdown();
-
   ROS_INFO("ROS Shutdown complete");
-
   return 0;
 }
