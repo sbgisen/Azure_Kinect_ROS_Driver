@@ -30,7 +30,7 @@ K4AROSBridgeNodelet::~K4AROSBridgeNodelet()
 
 void K4AROSBridgeNodelet::watchdogTimerCallback(const ros::TimerEvent&)
 {
-  if (!k4a_device->isRunning() || !ros::ok() || ros::isShuttingDown())
+  if (!k4a_device->isRunning())
   {
     timer_.stop();
     NODELET_ERROR("K4A device is not running. Restarting device.");
@@ -40,18 +40,18 @@ void K4AROSBridgeNodelet::watchdogTimerCallback(const ros::TimerEvent&)
 }
 void K4AROSBridgeNodelet::startKinect()
 {
-  k4a_device = std::unique_ptr<K4AROSDevice>(new K4AROSDevice(getNodeHandle(), getPrivateNodeHandle()));
-  if (k4a_device->startCameras() != K4A_RESULT_SUCCEEDED)
+  this->k4a_device = std::unique_ptr<K4AROSDevice>(new K4AROSDevice(getNodeHandle(), getPrivateNodeHandle()));
+  if (this->k4a_device->startCameras() != K4A_RESULT_SUCCEEDED)
   {
-    k4a_device.reset(nullptr);
+    this->k4a_device.reset(nullptr);
     sleep(1.0);
     throw nodelet::Exception("Could not start K4A cameras");
   }
   NODELET_INFO("Cameras started");
 
-  if (k4a_device->startImu() != K4A_RESULT_SUCCEEDED)
+  if (this->k4a_device->startImu() != K4A_RESULT_SUCCEEDED)
   {
-    k4a_device.reset(nullptr);
+    this->k4a_device.reset(nullptr);
     sleep(1.0);
     throw nodelet::Exception("Could not start K4A IMU");
   }
@@ -61,26 +61,26 @@ void K4AROSBridgeNodelet::startKinect()
 void K4AROSBridgeNodelet::restartKinect()
 {
   this->k4a_device.reset(nullptr);
-  k4a_device = std::unique_ptr<K4AROSDevice>(new K4AROSDevice(getNodeHandle(), getPrivateNodeHandle()));
+  this->k4a_device = std::unique_ptr<K4AROSDevice>(new K4AROSDevice(getNodeHandle(), getPrivateNodeHandle()));
   bool succeed = false;
   while (!succeed)
   {
-    if (k4a_device->startCameras() != K4A_RESULT_SUCCEEDED)
+    if (this->k4a_device->startCameras() != K4A_RESULT_SUCCEEDED)
     {
-      k4a_device.reset(nullptr);
+      this->k4a_device.reset(nullptr);
       NODELET_WARN("Could not restart K4A cameras");
       sleep(1.0);
-      k4a_device = std::unique_ptr<K4AROSDevice>(new K4AROSDevice(getNodeHandle(), getPrivateNodeHandle()));
+      this->k4a_device = std::unique_ptr<K4AROSDevice>(new K4AROSDevice(getNodeHandle(), getPrivateNodeHandle()));
       continue;
     }
     NODELET_INFO("Cameras restarted");
 
-    if (k4a_device->startImu() != K4A_RESULT_SUCCEEDED)
+    if (this->k4a_device->startImu() != K4A_RESULT_SUCCEEDED)
     {
-      k4a_device.reset(nullptr);
+      this->k4a_device.reset(nullptr);
       NODELET_WARN("Could not restart K4A IMU");
       sleep(1.0);
-      k4a_device = std::unique_ptr<K4AROSDevice>(new K4AROSDevice(getNodeHandle(), getPrivateNodeHandle()));
+      this->k4a_device = std::unique_ptr<K4AROSDevice>(new K4AROSDevice(getNodeHandle(), getPrivateNodeHandle()));
       continue;
     }
     NODELET_INFO("IMU restarted");

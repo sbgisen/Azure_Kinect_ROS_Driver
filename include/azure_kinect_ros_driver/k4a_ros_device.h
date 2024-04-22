@@ -45,8 +45,8 @@ public:
   k4a_result_t startCameras();
   k4a_result_t startImu();
 
-  void stopCameras();
-  void stopImu();
+  bool stopCameras();
+  bool stopImu();
 
   k4a_result_t getDepthFrame(const k4a::capture& capture, sensor_msgs::ImagePtr& depth_frame, bool rectified);
 

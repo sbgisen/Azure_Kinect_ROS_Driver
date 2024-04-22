@@ -348,21 +348,6 @@ K4AROSDevice::~K4AROSDevice()
     ROS_INFO("Body publisher thread joined");
   }
 #endif
-  if (frame_publisher_thread_.joinable())
-  {
-    // Join the publisher thread
-    ROS_INFO("Joining camera publisher thread");
-    frame_publisher_thread_.join();
-    ROS_INFO("Camera publisher thread joined");
-  }
-
-  if (imu_publisher_thread_.joinable())
-  {
-    // Join the publisher thread
-    ROS_INFO("Joining IMU publisher thread");
-    imu_publisher_thread_.join();
-    ROS_INFO("IMU publisher thread joined");
-  }
 
   // Stop the K4A device
   stopCameras();
@@ -477,32 +462,64 @@ k4a_result_t K4AROSDevice::startImu()
   return K4A_RESULT_SUCCEEDED;
 }
 
-void K4AROSDevice::stopCameras()
+bool K4AROSDevice::stopCameras()
 {
   if (!initialized_)
   {
-    return;
+    return true;
+  }
+  if (frame_publisher_thread_.joinable())
+  {
+    // Join the publisher thread
+    ROS_INFO("Joining camera publisher thread");
+    frame_publisher_thread_.join();
+    ROS_INFO("Camera publisher thread joined");
   }
   if (k4a_device_)
   {
     ROS_INFO("Stopping K4A cameras");
-    k4a_device_.stop_cameras();
-    ROS_INFO("K4A cameras stopped");
+    try
+    {
+      k4a_device_.stop_cameras();
+      ROS_INFO("K4A cameras stopped");
+    }
+    catch (k4a::error e)
+    {
+      ROS_ERROR_STREAM("Error stopping cameras: " << e.what());
+      return false;
+    }
   }
+  return true;
 }
 
-void K4AROSDevice::stopImu()
+bool K4AROSDevice::stopImu()
 {
   if (!initialized_)
   {
-    return;
+    return true;
+  }
+  if (imu_publisher_thread_.joinable())
+  {
+    // Join the publisher thread
+    ROS_INFO("Joining IMU publisher thread");
+    imu_publisher_thread_.join();
+    ROS_INFO("IMU publisher thread joined");
   }
   if (k4a_device_)
   {
     ROS_INFO("Stopping K4A IMU");
-    k4a_device_.stop_imu();
-    ROS_INFO("K4A IMU stopped");
+    try
+    {
+      k4a_device_.stop_imu();
+      ROS_INFO("K4A IMU stopped");
+    }
+    catch (k4a::error e)
+    {
+      ROS_ERROR_STREAM("Error stopping IMU: " << e.what());
+      return false;
+    }
   }
+  return true;
 }
 
 k4a_result_t K4AROSDevice::getDepthFrame(const k4a::capture& capture, sensor_msgs::ImagePtr& depth_image,
