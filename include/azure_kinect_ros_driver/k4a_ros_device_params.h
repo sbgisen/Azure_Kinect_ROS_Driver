@@ -80,7 +80,10 @@
               int, 0)                                                                                                  \
   LIST_ENTRY(subordinate_delay_off_master_usec,                                                                        \
               "Delay subordinate camera off master camera by specified amount in usec.",                               \
-              int, 0)
+              int, 0)                                                                                                  \
+  LIST_ENTRY(rgb_namespace,                                                                                            \
+              "The namespace of RGB topics",                                                                           \
+              std::string, std::string("rgb"))
 
 class K4AROSDeviceParams : public rclcpp::Node
 {
