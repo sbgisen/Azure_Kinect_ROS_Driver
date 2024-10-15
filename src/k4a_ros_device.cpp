@@ -14,7 +14,7 @@
 // Library headers
 //
 #include <angles/angles.h>
-#include <cv_bridge/cv_bridge.h>
+#include <cv_bridge/cv_bridge.hpp>
 #include <k4a/k4a.h>
 #include <sensor_msgs/distortion_models.hpp>
 #include <sensor_msgs/image_encodings.hpp>
@@ -77,6 +77,8 @@ K4AROSDevice::K4AROSDevice()
   this->declare_parameter("imu_rate_target", rclcpp::ParameterValue(0));
   this->declare_parameter("wired_sync_mode", rclcpp::ParameterValue(0));
   this->declare_parameter("subordinate_delay_off_master_usec", rclcpp::ParameterValue(0));
+  this->declare_parameter("tf_prefix", rclcpp::ParameterValue(""));
+  this->declare_parameter("rgb_namespace", rclcpp::ParameterValue("rgb"));
 
   // Collect ROS parameters from the param server or from the command line
 #define LIST_ENTRY(param_variable, param_help_string, param_type, param_default_val) \
@@ -243,13 +245,13 @@ K4AROSDevice::K4AROSDevice()
     // others can subscribe to 'rgb/image_raw' with compressed_image_transport.
     // This technique is described in:
     // http://wiki.ros.org/compressed_image_transport#Publishing_compressed_images_directly
-    rgb_jpeg_publisher_ = this->create_publisher<CompressedImage>("rgb/image_raw/compressed", 1);
+    rgb_jpeg_publisher_ = this->create_publisher<CompressedImage>(params_.rgb_namespace + "/image_raw/compressed", 1);
   }
   else if (params_.color_format == "bgra")
   {
-    rgb_raw_publisher_ = image_transport_->advertise("rgb/image_raw", 1, true);
+    rgb_raw_publisher_ = image_transport_->advertise(params_.rgb_namespace + "/image_raw", 1, true);
   }
-  rgb_raw_camerainfo_publisher_ = this->create_publisher<CameraInfo>("rgb/camera_info", 1);
+  rgb_raw_camerainfo_publisher_ = this->create_publisher<CameraInfo>(params_.rgb_namespace + "/camera_info", 1);
 
   depth_raw_publisher_ = image_transport_->advertise("depth/image_raw", 1, true);
   depth_raw_camerainfo_publisher_ = this->create_publisher<CameraInfo>("depth/camera_info", 1);
@@ -1053,7 +1055,8 @@ void K4AROSDevice::framePublisherThread()
       // Recordings may not have synchronized captures. For unsynchronized captures without color image skip rgb frame.
       if (params_.color_format == "jpeg")
       {
-        if ((this->count_subscribers("rgb/image_raw/compressed") > 0 || this->count_subscribers("rgb/camera_info") > 0) &&
+        if ((this->count_subscribers(params_.rgb_namespace + "/image_raw/compressed") > 0 ||
+             this->count_subscribers(params_.rgb_namespace + "/camera_info") > 0) &&
             (k4a_device_ || capture.get_color_image() != nullptr))
         {
           result = getJpegRgbFrame(capture, rgb_jpeg_frame);
@@ -1078,7 +1081,8 @@ void K4AROSDevice::framePublisherThread()
       }
       else if (params_.color_format == "bgra")
       {
-        if ((this->count_subscribers("rgb/image_raw") > 0 || this->count_subscribers("rgb/camera_info") > 0) &&
+        if ((this->count_subscribers(params_.rgb_namespace + "/image_raw") > 0 ||
+             this->count_subscribers(params_.rgb_namespace + "/camera_info") > 0) &&
             (k4a_device_ || capture.get_color_image() != nullptr))
         {
           result = getRbgFrame(capture, rgb_raw_frame);

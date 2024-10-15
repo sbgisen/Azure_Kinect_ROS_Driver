@@ -46,8 +46,8 @@ add_executable(${PROJECT_NAME}_node
   src/k4a_calibration_transform_data.cpp
   )
 
-ament_target_dependencies(${PROJECT_NAME}_node rclcpp 
-  std_msgs 
+ament_target_dependencies(${PROJECT_NAME}_node rclcpp
+  std_msgs
   sensor_msgs
   visualization_msgs
   image_transport
@@ -114,9 +114,6 @@ target_link_libraries(${PROJECT_NAME}_node
 
 ## Mark executables and/or libraries for installation
 install(TARGETS ${PROJECT_NAME}_node
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
   DESTINATION lib/${PROJECT_NAME}
 )
 
