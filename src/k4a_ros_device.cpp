@@ -285,7 +285,7 @@ K4AROSDevice::K4AROSDevice()
   if (params_.color_enabled && params_.color_format == "bgra")
   {
     rgb_diagnostic_ = std::make_shared<diagnostic_updater::TopicDiagnostic>(
-        "rgb/image_raw", updater_,
+        rgb_raw_publisher_.getTopic(), updater_,
         diagnostic_updater::FrequencyStatusParam(&fps_frequency_, &fps_frequency_, tolerance, 10),
         diagnostic_updater::TimeStampStatusParam());
   }
@@ -293,12 +293,12 @@ K4AROSDevice::K4AROSDevice()
   {
     if (calibration_data_.k4a_calibration_.depth_mode != K4A_DEPTH_MODE_PASSIVE_IR){
       depth_diagnostic_ = std::make_shared<diagnostic_updater::TopicDiagnostic>(
-          "depth/image_raw", updater_,
+          depth_raw_publisher_.getTopic(), updater_,
           diagnostic_updater::FrequencyStatusParam(&fps_frequency_, &fps_frequency_, tolerance, 10),
           diagnostic_updater::TimeStampStatusParam());
     }
     ir_diagnostic_ = std::make_shared<diagnostic_updater::TopicDiagnostic>(
-        "ir/image_raw", updater_,
+        ir_raw_publisher_.getTopic(), updater_,
         diagnostic_updater::FrequencyStatusParam(&fps_frequency_, &fps_frequency_, tolerance, 10),
         diagnostic_updater::TimeStampStatusParam());
   }
