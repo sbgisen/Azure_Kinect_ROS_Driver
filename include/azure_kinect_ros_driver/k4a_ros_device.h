@@ -23,6 +23,8 @@
 #include <sensor_msgs/msg/temperature.hpp>
 #include <k4a/k4a.hpp>
 #include <k4arecord/playback.hpp>
+#include <diagnostic_updater/diagnostic_updater.hpp>
+#include <diagnostic_updater/publisher.hpp>
 
 #if defined(K4A_BODY_TRACKING)
 #include <visualization_msgs/msg/marker_array.hpp>
@@ -131,10 +133,6 @@ class K4AROSDevice : public rclcpp::Node
   image_transport::Publisher ir_raw_publisher_;
   rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr ir_raw_camerainfo_publisher_;
 
-  rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_orientation_publisher_;
-
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pointcloud_publisher_;
-
 #if defined(K4A_BODY_TRACKING)
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr body_marker_publisher_;
 
@@ -174,6 +172,16 @@ class K4AROSDevice : public rclcpp::Node
   // Threads
   std::thread frame_publisher_thread_;
   std::thread imu_publisher_thread_;
+
+  double frequency_;
+  diagnostic_updater::Updater updater_;
+  std::shared_ptr<diagnostic_updater::TopicDiagnostic> rgb_diagnostic_;
+  std::shared_ptr<diagnostic_updater::TopicDiagnostic> depth_diagnostic_;
+  std::shared_ptr<diagnostic_updater::TopicDiagnostic> ir_diagnostic_;
+  double imu_frequency_;
+  double fps_frequency_;
+  std::shared_ptr<diagnostic_updater::DiagnosedPublisher<sensor_msgs::msg::Imu>> diagnosed_imu_publisher_;
+  std::shared_ptr<diagnostic_updater::DiagnosedPublisher<sensor_msgs::msg::PointCloud2>> diagnosed_pointcloud_publisher_;
 };
 
 #endif  // K4A_ROS_DEVICE_H
