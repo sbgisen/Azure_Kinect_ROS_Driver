@@ -26,10 +26,10 @@
 //
 #include "azure_kinect_ros_driver/k4a_ros_device_params.h"
 
-class K4ACalibrationTransformData : public rclcpp::Node
+class K4ACalibrationTransformData
 {
 public:
-  K4ACalibrationTransformData();
+  K4ACalibrationTransformData(const rclcpp::Node::SharedPtr& node);
   void initialize(const k4a::device& device, const k4a_depth_mode_t depthMode, const k4a_color_resolution_t resolution,
                   const K4AROSDeviceParams& params);
   void initialize(const k4a::playback& k4a_playback_handle, const K4AROSDeviceParams& params);
@@ -40,6 +40,8 @@ public:
   void getDepthCameraInfo(sensor_msgs::msg::CameraInfo& camera_info);
   void getRgbCameraInfo(sensor_msgs::msg::CameraInfo& camera_info);
   void print();
+
+  rclcpp::Node::SharedPtr node_;
 
   k4a::calibration k4a_calibration_;
   k4a::transformation k4a_transformation_;

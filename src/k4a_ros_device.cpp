@@ -50,7 +50,9 @@ K4AROSDevice::K4AROSDevice(const rclcpp::Node::SharedPtr& node)
     imu_stream_end_of_file_(false),
     updater_(node_),
     initialized_(false),
-    running_(false)
+    running_(false),
+    calibration_data_(node_),
+    params_(node_)
 {
   // Declare an image transport
   auto image_transport_ = new image_transport::ImageTransport(static_cast<rclcpp::Node::SharedPtr>(node_));
@@ -62,28 +64,30 @@ K4AROSDevice::K4AROSDevice(const rclcpp::Node::SharedPtr& node)
   static const std::string compressed_png_level = "/compressed/png_level";
 
   // Declare node parameters
-  node_->declare_parameter("depth_enabled", rclcpp::ParameterValue(true));
-  node_->declare_parameter("depth_mode", rclcpp::ParameterValue("NFOV_UNBINNED"));
-  node_->declare_parameter("color_enabled", rclcpp::ParameterValue(false));
-  node_->declare_parameter("color_format", rclcpp::ParameterValue("bgra"));
-  node_->declare_parameter("color_resolution", rclcpp::ParameterValue("720P"));
-  node_->declare_parameter("fps", rclcpp::ParameterValue(5));
-  node_->declare_parameter("point_cloud", rclcpp::ParameterValue(true));
-  node_->declare_parameter("rgb_point_cloud", rclcpp::ParameterValue(false));
-  node_->declare_parameter("point_cloud_in_depth_frame", rclcpp::ParameterValue(true));
-  node_->declare_parameter("sensor_sn", rclcpp::ParameterValue(""));
-  node_->declare_parameter("recording_file", rclcpp::ParameterValue(""));
-  node_->declare_parameter("recording_loop_enabled", rclcpp::ParameterValue(false));
-  node_->declare_parameter("body_tracking_enabled", rclcpp::ParameterValue(false));
-  node_->declare_parameter("body_tracking_smoothing_factor", rclcpp::ParameterValue(0.0f));
-  node_->declare_parameter("rescale_ir_to_mono8", rclcpp::ParameterValue(false));
-  node_->declare_parameter("ir_mono8_scaling_factor", rclcpp::ParameterValue(1.0f));
-  node_->declare_parameter("imu_rate_target", rclcpp::ParameterValue(0));
-  node_->declare_parameter("wired_sync_mode", rclcpp::ParameterValue(0));
-  node_->declare_parameter("subordinate_delay_off_master_usec", rclcpp::ParameterValue(0));
-  node_->declare_parameter("tf_prefix", rclcpp::ParameterValue(""));
-  node_->declare_parameter("rgb_namespace", rclcpp::ParameterValue("rgb"));
-  node_->declare_parameter<double>("diagnostic_tolerance", 0.1);
+  if(!node_->has_parameter("depth_enabled")){
+    node_->declare_parameter("depth_enabled", rclcpp::ParameterValue(true));
+    node_->declare_parameter("depth_mode", rclcpp::ParameterValue("NFOV_UNBINNED"));
+    node_->declare_parameter("color_enabled", rclcpp::ParameterValue(false));
+    node_->declare_parameter("color_format", rclcpp::ParameterValue("bgra"));
+    node_->declare_parameter("color_resolution", rclcpp::ParameterValue("720P"));
+    node_->declare_parameter("fps", rclcpp::ParameterValue(5));
+    node_->declare_parameter("point_cloud", rclcpp::ParameterValue(true));
+    node_->declare_parameter("rgb_point_cloud", rclcpp::ParameterValue(false));
+    node_->declare_parameter("point_cloud_in_depth_frame", rclcpp::ParameterValue(true));
+    node_->declare_parameter("sensor_sn", rclcpp::ParameterValue(""));
+    node_->declare_parameter("recording_file", rclcpp::ParameterValue(""));
+    node_->declare_parameter("recording_loop_enabled", rclcpp::ParameterValue(false));
+    node_->declare_parameter("body_tracking_enabled", rclcpp::ParameterValue(false));
+    node_->declare_parameter("body_tracking_smoothing_factor", rclcpp::ParameterValue(0.0f));
+    node_->declare_parameter("rescale_ir_to_mono8", rclcpp::ParameterValue(false));
+    node_->declare_parameter("ir_mono8_scaling_factor", rclcpp::ParameterValue(1.0f));
+    node_->declare_parameter("imu_rate_target", rclcpp::ParameterValue(0));
+    node_->declare_parameter("wired_sync_mode", rclcpp::ParameterValue(0));
+    node_->declare_parameter("subordinate_delay_off_master_usec", rclcpp::ParameterValue(0));
+    node_->declare_parameter("tf_prefix", rclcpp::ParameterValue(""));
+    node_->declare_parameter("rgb_namespace", rclcpp::ParameterValue("rgb"));
+    node_->declare_parameter<double>("diagnostic_tolerance", 0.1);
+  }
 
   // Collect ROS parameters from the param server or from the command line
 #define LIST_ENTRY(param_variable, param_help_string, param_type, param_default_val) \
