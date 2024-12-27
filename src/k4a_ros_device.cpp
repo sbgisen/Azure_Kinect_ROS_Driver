@@ -1280,7 +1280,6 @@ void K4AROSDevice::framePublisherThread()
       }
     }
 
-    rclcpp::spin_some(node_->shared_from_this());
     loop_rate.sleep();
   }
 }

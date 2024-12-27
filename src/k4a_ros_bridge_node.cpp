@@ -70,14 +70,9 @@ public:
   }
   void run()
   {
-    auto result = startKinect();
+    rclcpp::spin(node_);
 
-    if (result == K4A_RESULT_SUCCEEDED)
-    {
-      rclcpp::spin(node_);
-
-      RCLCPP_INFO(node_->get_logger(), "ROS Exit Started");
-    }
+    RCLCPP_INFO(node_->get_logger(), "ROS Exit Started");
 
     device_.reset();
 
