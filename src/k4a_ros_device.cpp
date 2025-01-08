@@ -540,7 +540,7 @@ k4a_result_t K4AROSDevice::getJpegRgbFrame(const k4a::capture& capture, std::sha
   return K4A_RESULT_SUCCEEDED;
 }
 
-k4a_result_t K4AROSDevice::getRbgFrame(const k4a::capture& capture, std::shared_ptr<sensor_msgs::msg::Image>& rgb_image,
+k4a_result_t K4AROSDevice::getRgbFrame(const k4a::capture& capture, std::shared_ptr<sensor_msgs::msg::Image>& rgb_image,
                                        bool rectified = false)
 {
   k4a::image k4a_bgra_frame = capture.get_color_image();
@@ -1126,7 +1126,7 @@ void K4AROSDevice::framePublisherThread()
         }
         else if (k4a_device_ || capture.get_color_image() != nullptr)
         {
-          result = getRbgFrame(capture, rgb_raw_frame);
+          result = getRgbFrame(capture, rgb_raw_frame);
 
           if (result != K4A_RESULT_SUCCEEDED)
           {
@@ -1155,7 +1155,7 @@ void K4AROSDevice::framePublisherThread()
             (this->count_subscribers("rgb_to_depth/image_raw") > 0 || this->count_subscribers("rgb_to_depth/camera_info") > 0) &&
             (k4a_device_ || (capture.get_color_image() != nullptr && capture.get_depth_image() != nullptr)))
         {
-          result = getRbgFrame(capture, rgb_rect_frame, true /* rectified */);
+          result = getRgbFrame(capture, rgb_rect_frame, true /* rectified */);
 
           if (result != K4A_RESULT_SUCCEEDED)
           {
