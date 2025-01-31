@@ -22,6 +22,7 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
@@ -39,15 +40,36 @@ find_package(diagnostic_updater REQUIRED)
 ###########
 
 
-## Declare a C++ executable
-add_executable(${PROJECT_NAME}_node
+add_library(${PROJECT_NAME}_component SHARED 
   src/k4a_ros_bridge_node.cpp
   src/k4a_ros_device.cpp
   src/k4a_ros_device_params.cpp
-  src/k4a_calibration_transform_data.cpp
-  )
+  src/k4a_calibration_transform_data.cpp)
+rclcpp_components_register_node(
+  ${PROJECT_NAME}_component
+  PLUGIN
+  "K4ADriver"
+  EXECUTABLE
+  ${PROJECT_NAME}_node
+)
+ament_export_targets(export_${PROJECT_NAME}_component)
+install(
+  TARGETS ${PROJECT_NAME}_component
+  EXPORT export_${PROJECT_NAME}_component
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+## Declare a C++ executable
+# add_executable(${PROJECT_NAME}_node
+#   src/k4a_ros_bridge_node.cpp
+#   src/k4a_ros_device.cpp
+#   src/k4a_ros_device_params.cpp
+#   src/k4a_calibration_transform_data.cpp
+#   )
 
-ament_target_dependencies(${PROJECT_NAME}_node rclcpp
+ament_target_dependencies(${PROJECT_NAME}_component rclcpp
+  rclcpp_components
   std_msgs
   sensor_msgs
   visualization_msgs
@@ -104,6 +126,9 @@ include(Installk4a)
 include_directories(include)
 
 target_link_libraries(${PROJECT_NAME}_node
+  ${K4A_LIBS}
+)
+target_link_libraries(${PROJECT_NAME}_component
   ${K4A_LIBS}
 )
 
