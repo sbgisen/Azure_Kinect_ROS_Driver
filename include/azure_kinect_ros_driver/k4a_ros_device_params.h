@@ -85,10 +85,10 @@
               "The namespace of RGB topics",                                                                           \
               std::string, std::string("rgb"))
 
-class K4AROSDeviceParams : public rclcpp::Node
+class K4AROSDeviceParams
 {
 public:
-  K4AROSDeviceParams();
+  K4AROSDeviceParams(const rclcpp::Node::SharedPtr& node);
 
   // Get a device configuration from a a set of parameters
   k4a_result_t GetDeviceConfig(k4a_device_configuration_t* configuration);
@@ -98,6 +98,8 @@ public:
 
   // Print the value of all parameters
   void Print();
+
+  rclcpp::Node::SharedPtr node_;
 
 // Parameters
 #define LIST_ENTRY(param_variable, param_help_string, param_type, param_default_val) param_type param_variable;

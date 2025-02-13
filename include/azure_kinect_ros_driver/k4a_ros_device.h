@@ -36,18 +36,18 @@
 #include "azure_kinect_ros_driver/k4a_calibration_transform_data.h"
 #include "azure_kinect_ros_driver/k4a_ros_device_params.h"
 
-class K4AROSDevice : public rclcpp::Node
+class K4AROSDevice
 {
  public:
-  K4AROSDevice();
+  K4AROSDevice(const rclcpp::Node::SharedPtr& node);
 
   ~K4AROSDevice();
 
   k4a_result_t startCameras();
   k4a_result_t startImu();
 
-  void stopCameras();
-  void stopImu();
+  bool stopCameras();
+  bool stopImu();
 
   // Get camera calibration information for the depth camera
   void getDepthCameraInfo(sensor_msgs::msg::CameraInfo& camera_info);
@@ -77,6 +77,7 @@ class K4AROSDevice : public rclcpp::Node
   k4a_result_t renderBodyIndexMapToROS(std::shared_ptr<sensor_msgs::msg::Image> body_index_map_image, k4a::image& k4a_body_index_map,
                                        const k4abt::frame& body_frame);
 #endif
+  bool isRunning();
 
  private:
   k4a_result_t renderBGRA32ToROS(std::shared_ptr<sensor_msgs::msg::Image>& rgb_frame, k4a::image& k4a_bgra_frame);
@@ -116,6 +117,7 @@ class K4AROSDevice : public rclcpp::Node
 
   void printTimestampDebugMessage(const std::string& name, const rclcpp::Time& timestamp);
 
+  rclcpp::Node::SharedPtr node_;
 
   image_transport::Publisher rgb_raw_publisher_;
   rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr rgb_jpeg_publisher_;
@@ -160,7 +162,7 @@ class K4AROSDevice : public rclcpp::Node
   std::chrono::nanoseconds device_to_realtime_offset_{0};
 
   // Thread control
-  volatile bool running_;
+  volatile bool initialized_, running_;
 
   // Last capture timestamp for synchronizing playback capture and imu thread
   std::atomic_uint64_t last_capture_time_usec_;
