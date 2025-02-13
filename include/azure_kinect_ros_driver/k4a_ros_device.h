@@ -37,7 +37,7 @@
 
 class K4AROSDevice
 {
- public:
+public:
   K4AROSDevice(const ros::NodeHandle& n = ros::NodeHandle(), const ros::NodeHandle& p = ros::NodeHandle("~"));
 
   ~K4AROSDevice();
@@ -45,8 +45,8 @@ class K4AROSDevice
   k4a_result_t startCameras();
   k4a_result_t startImu();
 
-  void stopCameras();
-  void stopImu();
+  bool stopCameras();
+  bool stopImu();
 
   k4a_result_t getDepthFrame(const k4a::capture& capture, sensor_msgs::ImagePtr& depth_frame, bool rectified);
 
@@ -61,6 +61,7 @@ class K4AROSDevice
   k4a_result_t getJpegRgbFrame(const k4a::capture& capture, sensor_msgs::CompressedImagePtr& jpeg_image);
 
   k4a_result_t getIrFrame(const k4a::capture& capture, sensor_msgs::ImagePtr& ir_image);
+  bool isRunning();
 
 #if defined(K4A_BODY_TRACKING)
   k4a_result_t getBodyMarker(const k4abt_body_t& body, visualization_msgs::MarkerPtr marker_msg, int jointType,
@@ -72,7 +73,7 @@ class K4AROSDevice
                                        const k4abt::frame& body_frame);
 #endif
 
- private:
+private:
   k4a_result_t renderBGRA32ToROS(sensor_msgs::ImagePtr& rgb_frame, k4a::image& k4a_bgra_frame);
   k4a_result_t renderDepthToROS(sensor_msgs::ImagePtr& depth_image, k4a::image& k4a_depth_frame);
   k4a_result_t renderIrToROS(sensor_msgs::ImagePtr& ir_image, k4a::image& k4a_ir_frame);
@@ -165,10 +166,10 @@ class K4AROSDevice
   std::thread body_publisher_thread_;
 #endif
 
-  std::chrono::nanoseconds device_to_realtime_offset_{0};
+  std::chrono::nanoseconds device_to_realtime_offset_{ 0 };
 
   // Thread control
-  volatile bool running_;
+  volatile bool initialized_, running_;
 
   // Last capture timestamp for synchronizing playback capture and imu thread
   std::atomic_int64_t last_capture_time_usec_;

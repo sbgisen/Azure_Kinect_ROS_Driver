@@ -10,7 +10,9 @@
 // Library headers
 //
 #include <ros/ros.h>
+#include <nodelet/loader.h>
 #include <nodelet/nodelet.h>
+#include <pluginlib/class_list_macros.h>
 
 // Project headers
 //
@@ -25,9 +27,13 @@ public:
   ~K4AROSBridgeNodelet();
 
   virtual void onInit();
+  void watchdogTimerCallback(const ros::TimerEvent&);
+  void startKinect();
+  void restartKinect();
 
 private:
   std::unique_ptr<K4AROSDevice> k4a_device;
+  ros::Timer timer_;
 };
 }  // namespace Azure_Kinect_ROS_Driver
 
