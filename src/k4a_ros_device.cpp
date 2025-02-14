@@ -7,6 +7,7 @@
 
 // System headers
 //
+#include <memory>
 #include <rclcpp/node.hpp>
 #include <thread>
 #include <iomanip>
@@ -87,6 +88,9 @@ K4AROSDevice::K4AROSDevice(const rclcpp::Node::SharedPtr& node)
     node_->declare_parameter("tf_prefix", rclcpp::ParameterValue(""));
     node_->declare_parameter("rgb_namespace", rclcpp::ParameterValue("rgb"));
     node_->declare_parameter<double>("diagnostic_tolerance", 0.1);
+    node_->declare_parameter("camera_name", rclcpp::ParameterValue("camera"));
+    node_->declare_parameter("rgb_camera_info_uri", rclcpp::ParameterValue(""));
+    node_->declare_parameter("depth_camera_info_uri", rclcpp::ParameterValue(""));
   }
 
   // Collect ROS parameters from the param server or from the command line
@@ -955,11 +959,39 @@ void K4AROSDevice::framePublisherThread()
 
   k4a::capture capture;
 
-  calibration_data_.getDepthCameraInfo(depth_raw_camera_info);
-  calibration_data_.getRgbCameraInfo(rgb_raw_camera_info);
-  calibration_data_.getDepthCameraInfo(rgb_rect_camera_info);
-  calibration_data_.getRgbCameraInfo(depth_rect_camera_info);
-  calibration_data_.getDepthCameraInfo(ir_raw_camera_info);
+  auto rgb_camera_info_uri = node_->get_parameter("rgb_camera_info_uri").as_string();
+  auto depth_camera_info_uri = node_->get_parameter("depth_camera_info_uri").as_string();
+
+  if (rgb_camera_info_uri.empty()) {
+    calibration_data_.getRgbCameraInfo(rgb_raw_camera_info);
+    calibration_data_.getRgbCameraInfo(depth_rect_camera_info);
+  } else {
+    auto camera_name = node_->get_parameter("camera_name").as_string() + "_rgb";
+    rgb_camera_info_manager_ =
+        std::make_shared<camera_info_manager::CameraInfoManager>(
+            node_.get(), camera_name, rgb_camera_info_uri);
+    rgb_raw_camera_info = rgb_camera_info_manager_->getCameraInfo();
+    rgb_raw_camera_info.header.frame_id = calibration_data_.tf_prefix_ + calibration_data_.rgb_camera_frame_;
+    depth_rect_camera_info = rgb_camera_info_manager_->getCameraInfo();
+    depth_rect_camera_info.header.frame_id = calibration_data_.tf_prefix_ + calibration_data_.rgb_camera_frame_;
+  }
+
+  if (depth_camera_info_uri.empty()) {
+    calibration_data_.getDepthCameraInfo(depth_raw_camera_info);
+    calibration_data_.getDepthCameraInfo(rgb_rect_camera_info);
+    calibration_data_.getDepthCameraInfo(ir_raw_camera_info);
+  } else {
+    auto camera_name = node_->get_parameter("camera_name").as_string() + "_depth";
+    depth_camera_info_manager_ =
+        std::make_shared<camera_info_manager::CameraInfoManager>(
+            node_.get(), camera_name, depth_camera_info_uri);
+    depth_raw_camera_info = depth_camera_info_manager_->getCameraInfo();
+    depth_raw_camera_info.header.frame_id = calibration_data_.tf_prefix_ + calibration_data_.depth_camera_frame_;
+    rgb_rect_camera_info = depth_camera_info_manager_->getCameraInfo();
+    rgb_rect_camera_info.header.frame_id = calibration_data_.tf_prefix_ + calibration_data_.depth_camera_frame_;
+    ir_raw_camera_info = depth_camera_info_manager_->getCameraInfo();
+    ir_raw_camera_info.header.frame_id = calibration_data_.tf_prefix_ + calibration_data_.depth_camera_frame_;
+  }
 
   const std::chrono::milliseconds firstFrameWaitTime = std::chrono::milliseconds(4 * 1000);
   const std::chrono::milliseconds regularFrameWaitTime = std::chrono::milliseconds(1000 * 5 / params_.fps);

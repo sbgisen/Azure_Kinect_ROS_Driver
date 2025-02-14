@@ -12,6 +12,7 @@
 
 // Library headers
 //
+#include "camera_info_manager/camera_info_manager.hpp"
 #include <image_transport/image_transport.hpp>
 #include <k4a/k4a.h>
 #include "rclcpp/rclcpp.hpp"
@@ -184,6 +185,9 @@ class K4AROSDevice
   double fps_frequency_;
   std::shared_ptr<diagnostic_updater::DiagnosedPublisher<sensor_msgs::msg::Imu>> diagnosed_imu_publisher_;
   std::shared_ptr<diagnostic_updater::DiagnosedPublisher<sensor_msgs::msg::PointCloud2>> diagnosed_pointcloud_publisher_;
+
+  std::shared_ptr<camera_info_manager::CameraInfoManager> rgb_camera_info_manager_;
+  std::shared_ptr<camera_info_manager::CameraInfoManager> depth_camera_info_manager_;
 };
 
 #endif  // K4A_ROS_DEVICE_H
