@@ -34,6 +34,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(angles REQUIRED)
 find_package(diagnostic_updater REQUIRED)
+find_package(camera_info_manager REQUIRED)
 
 ###########
 ## Build ##
@@ -79,7 +80,8 @@ ament_target_dependencies(${PROJECT_NAME}_component rclcpp
   tf2_geometry_msgs
   cv_bridge
   angles
-  diagnostic_updater)
+  diagnostic_updater
+  camera_info_manager)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
